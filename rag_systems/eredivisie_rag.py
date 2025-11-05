@@ -10,6 +10,15 @@ EMBED_MODEL = "multi-qa-MiniLM-L6-cos-v1"
 MARKER = "<|end|><|start|>assistant<|channel|>final<|message|>"
 DEFAULT_TOKENS = 1500
 
+converted_csv = None
+all_seasons = []
+all_teams = []
+embedder = None
+info_snippets = []
+index = None
+model = None
+tokenizer = None
+
 # =========================
 # Step 1: Load dataset
 # =========================
@@ -23,8 +32,6 @@ DEFAULT_TOKENS = 1500
 # =========================
 
 # Load CSV and create snippets
-converted_csv = pandas.read_csv(CSV_PATH, delimiter=";")
-
 def row_to_text(row):
     if row["champion"]:
         status = "WON the Eredivisie (CHAMPION)"
@@ -35,18 +42,23 @@ def row_to_text(row):
         f"Team: {row['team']} {status}\n"
     )
 
-info_snippets = converted_csv.apply(row_to_text, axis=1).tolist()
+def load_csv():
+    global converted_csv, all_seasons, all_teams, embedder, info_snippets, index
 
-# Create embeddings and FAISS index for lookup
-embedder = SentenceTransformer(EMBED_MODEL)
-vectors = embedder.encode(info_snippets, convert_to_numpy=True)
-dimensions = vectors.shape[1]
-index = faiss.IndexFlatL2(dimensions)
-index.add(vectors)
+    converted_csv = pandas.read_csv(CSV_PATH, delimiter=";")
 
-# Create lists for aggregation queries
-all_seasons = sorted(converted_csv["season"].unique())
-all_teams = sorted(converted_csv["team"].unique())
+    info_snippets = converted_csv.apply(row_to_text, axis=1).tolist()
+
+    # Create embeddings and FAISS index for lookup
+    embedder = SentenceTransformer(EMBED_MODEL)
+    vectors = embedder.encode(info_snippets, convert_to_numpy=True)
+    dimensions = vectors.shape[1]
+    index = faiss.IndexFlatL2(dimensions)
+    index.add(vectors)
+
+    # Create lists for aggregation queries
+    all_seasons = sorted(converted_csv["season"].unique())
+    all_teams = sorted(converted_csv["team"].unique())
 
 # =========================
 # Step 2: Load LLM Model & classifier
@@ -60,10 +72,6 @@ all_teams = sorted(converted_csv["team"].unique())
 # Because the LLM returns reasoning text along with the classification, we use a MARKER to extract the real answer.
 # We also ask the LLM to return the amount of years to consider for aggregation queries for the same reason as we ask it to classify instead of calculating it.
 # =========================
-
-# Initialize the model and tokenizer
-model, tokenizer = load(MODEL_NAME)
-
 def query_formatter(query):
     formatter_prompt = f"""
 You are a helpful assistant that reformats user questions about the Eredivisie football league to be as clear and specific as possible.
@@ -387,6 +395,13 @@ def rag_answer(query):
 
 
 def run_eredivisie_rag():
+    global model, tokenizer, embedder, index, info_snippets
+
+    print("📦 Loading Eredivisie system...")
+    load_csv()   # builds CSV + FAISS
+
+    print("📦 Loading LLM...")
+    model, tokenizer = load(MODEL_NAME)
     print("Eredivisie RAG is now running!")
     print("Type your question, or type 'quit' to exit.\n")
 
