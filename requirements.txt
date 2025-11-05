@@ -1,11 +1,14 @@
+blessed==1.23.0
 certifi==2025.10.5
 charset-normalizer==3.4.4
+editor==1.6.6
 faiss-cpu==1.12.0
 filelock==3.20.0
 fsspec==2025.10.0
 hf-xet==1.2.0
 huggingface-hub==0.36.0
 idna==3.11
+inquirer==3.4.1
 inquirerpy==0.3.4
 Jinja2==3.1.6
 joblib==1.5.2
@@ -25,8 +28,10 @@ protobuf==6.33.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
 PyYAML==6.0.3
+readchar==4.2.1
 regex==2025.11.3
 requests==2.32.5
+runs==1.2.2
 safetensors==0.6.2
 scikit-learn==1.7.2
 scipy==1.15.3
@@ -42,3 +47,4 @@ typing_extensions==4.15.0
 tzdata==2025.2
 urllib3==2.5.0
 wcwidth==0.2.14
+xmod==1.8.1
