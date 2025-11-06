@@ -1,6 +1,6 @@
 import subprocess
 
-def ask_fine_tuned_docter(query):
+def ask_fine_tuned_doctor(query):
     command = [
         "mlx_lm.generate",
         "--model", "mlx-community/Ministral-8B-Instruct-2410-4bit",
@@ -32,7 +32,7 @@ def run_fine_tuned_doctor():
         if not query.strip():
             continue
 
-        answer = ask_fine_tuned_docter(query)
+        answer = ask_fine_tuned_doctor(query)
         print(answer)
 
         print("\n-----------------------------------\n")
