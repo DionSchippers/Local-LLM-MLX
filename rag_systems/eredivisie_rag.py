@@ -19,6 +19,7 @@ index = None
 model = None
 tokenizer = None
 
+
 # =========================
 # Step 1: Load dataset
 # =========================
@@ -42,6 +43,7 @@ def row_to_text(row):
         f"Team: {row['team']} {status}\n"
     )
 
+
 def load_csv():
     global converted_csv, all_seasons, all_teams, embedder, info_snippets, index
 
@@ -59,6 +61,7 @@ def load_csv():
     # Create lists for aggregation queries
     all_seasons = sorted(converted_csv["season"].unique())
     all_teams = sorted(converted_csv["team"].unique())
+
 
 # =========================
 # Step 2: Load LLM Model & classifier
@@ -104,7 +107,9 @@ User question:
 {query}
 Reformatted question:
 """
-    return generate(model, tokenizer, formatter_prompt, max_tokens=DEFAULT_TOKENS).strip().lower().split(MARKER, 1)[1].strip()
+    return generate(model, tokenizer, formatter_prompt, max_tokens=DEFAULT_TOKENS).strip().lower().split(MARKER, 1)[
+        1].strip()
+
 
 # classify the type of query and what to do with it
 def classify_query(query):
@@ -135,8 +140,9 @@ Answer:
     if MARKER in category:
         category = category.split(MARKER, 1)[1].strip()
 
-    if category in ("lookup", "aggregate-winners","aggregate-team","aggregate-simple", "unknown"):
+    if category in ("lookup", "aggregate-winners", "aggregate-team", "aggregate-simple", "unknown"):
         return category
+
 
 # Extract number of years for aggregation queries
 def find_years_for_aggregations_query(query):
@@ -165,6 +171,7 @@ Answer:
         last_season, seasons = extracted_result.split(", ")
         return last_season, int(seasons)
 
+
 # =========================
 # Step 3: Define the tooling the RAG system can use
 # =========================
@@ -189,6 +196,7 @@ def extract_season_from_query(query):
     next_year = str(int(year) + 1)[2:]
     return f"{year}/{next_year}"
 
+
 def extract_position_from_query(query):
     match = re.search(r"(\d+)(st|nd|rd|th)?", query)
     if match:
@@ -198,6 +206,7 @@ def extract_position_from_query(query):
             return None
     return None
 
+
 def structured_lookup(query):
     season = extract_season_from_query(query)
     position = extract_position_from_query(query)
@@ -206,11 +215,13 @@ def structured_lookup(query):
         filtered = converted_csv[
             (converted_csv["season"] == season)
             & (converted_csv["position"] == position)
-        ]
+            ]
         if not filtered.empty:
             row = filtered.iloc[0]
             return row_to_text(row)
     return None
+
+
 # -------------------
 
 # Build context for lookup questions
@@ -231,10 +242,11 @@ def lookup_context_builder(query):
     distances, indices = index.search(query_vec, k=100)
     return [info_snippets[i] for i in indices[0]]
 
-def titles_last_specified_years(last_season,seasons):
+
+def titles_last_specified_years(last_season, seasons):
     end_index = all_seasons.index(last_season)
     start_index = max(0, end_index - seasons + 1)
-    context_seasons = all_seasons[start_index : end_index + 1]
+    context_seasons = all_seasons[start_index: end_index + 1]
     winners = {}
     for season in context_seasons:
         season_winner = converted_csv.query("season == @season and champion == True")
@@ -244,10 +256,11 @@ def titles_last_specified_years(last_season,seasons):
 
     return winners
 
-def statistics_of_all_teams_in_specified_years(last_season,seasons):
+
+def statistics_of_all_teams_in_specified_years(last_season, seasons):
     end_index = all_seasons.index(last_season)
     start_index = max(0, end_index - seasons + 1)
-    context_seasons = all_seasons[start_index : end_index + 1]
+    context_seasons = all_seasons[start_index: end_index + 1]
     results = {}
     for season in context_seasons:
         for team in all_teams:
@@ -257,6 +270,7 @@ def statistics_of_all_teams_in_specified_years(last_season,seasons):
 
     return results
 
+
 def statistics_specific_season(season):
     season_results = converted_csv.query("season == @season").sort_values(by="position")
     results = []
@@ -264,12 +278,13 @@ def statistics_specific_season(season):
         results.append(row.to_dict())
     return results
 
+
 # Build context for aggregation questions
 def aggregate_context_builder(query, aggregation_type):
     last_season, seasons = find_years_for_aggregations_query(query)
 
     if aggregation_type == "aggregate-winners":
-        winners= titles_last_specified_years(last_season, seasons)
+        winners = titles_last_specified_years(last_season, seasons)
         facts = {
             "seasons": seasons,
             "winners": winners
@@ -277,7 +292,7 @@ def aggregate_context_builder(query, aggregation_type):
         return [str(facts)]
 
     if aggregation_type == "aggregate-team":
-        results= statistics_of_all_teams_in_specified_years(last_season, seasons)
+        results = statistics_of_all_teams_in_specified_years(last_season, seasons)
         facts = {
             "seasons": seasons,
             "results": results
@@ -285,7 +300,7 @@ def aggregate_context_builder(query, aggregation_type):
         return [str(facts)]
 
     if aggregation_type == "aggregate-simple":
-        results= statistics_specific_season(last_season)
+        results = statistics_specific_season(last_season)
         facts = {
             "seasons": seasons,
             "results": results
@@ -325,7 +340,6 @@ Answer:
 
 
 def build_aggregate_prompt(query, facts):
-
     return f"""
 You are a football expert. You specifically know a lot about the Eredivisie. Every question is about the Eredivisie.
 
@@ -347,8 +361,8 @@ Rules:
 Answer:
 """
 
-def build_generic_prompt(query):
 
+def build_generic_prompt(query):
     return f"""
 You are a football expert. You specifically know a lot about the Eredivisie. Every question is about the Eredivisie.
 
@@ -365,6 +379,7 @@ Rules:
 
 Answer:
 """
+
 
 # =========================
 # Step 5: Route the query and generate the final answer
@@ -398,7 +413,7 @@ def run_eredivisie_rag():
     global model, tokenizer, embedder, index, info_snippets
 
     print("📦 Loading Eredivisie system...")
-    load_csv()   # builds CSV + FAISS
+    load_csv()  # builds CSV + FAISS
 
     print("📦 Loading LLM...")
     model, tokenizer = load(MODEL_NAME)
@@ -419,7 +434,6 @@ def run_eredivisie_rag():
 
         answer = rag_answer(query)
         if MARKER in answer:
-            print("\n📝 Train of thought:\n", answer.split(MARKER, 1)[0].strip())
             print("\n✅ Answer:\n", answer.split(MARKER, 1)[1].strip())
         else:
             print("\n❌ Answer too long, try a different question.")
