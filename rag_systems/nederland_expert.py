@@ -17,6 +17,15 @@ index = None
 model = None
 tokenizer = None
 
+# =========================
+# Step 1: Load dataset
+# =========================
+# Use PyMuPDF (fitz) to read the PDF file.
+# Clean up the text
+# Split the text into paragraphs so the context is manageable and stays intact.
+# Embed the chunks using a SentenceTransformer model.
+# Build a FAISS index from these vectors.
+# =========================
 
 def read_pdf(path: str):
     document = fitz.open(path)
@@ -57,8 +66,15 @@ def build_pdf_index():
 
     print(f"✅ Index ready ({len(chunks)} chunks)")
 
+# =========================
+# Step 2: Retrieve context & Build prompt
+# =========================
+# Make the Query into vectors.
+# Search the FAISS index for the most relevant chunks.
+# Build a prompt that includes the retrieved context and the user's query.
+# =========================
 
-def retrieve_context(query: str, k: int = 6):
+def retrieve_context(query: str, k: int = 5):
     query_vectors = embedder.encode([query], convert_to_numpy=True)
     distances, indices = index.search(query_vectors, k)
     return [chunks[i] for i in indices[0]]
@@ -83,6 +99,12 @@ Question: {query}
 Answer:
 """
 
+# =========================
+# Step 3: Send the prompt to the LLM
+# =========================
+# Send the prompt to the LLM
+# Clean up after the result and return the final answer.
+# =========================
 
 def rag_answer(query: str):
     context = retrieve_context(query)
