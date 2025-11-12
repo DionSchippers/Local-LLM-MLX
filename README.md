@@ -9,6 +9,7 @@ You can simply run main.py to navigate to the different systems. Currently, the 
 Fine-tuned-Doctor - A fine-tuned LLM model for medical diagnosis using a small symptoms-diagnosis dataset.
 Eredivisie RAG - A Retrieval Augmented Generation system using the small Eredivisie Dataset.
 Nederland Expert RAG - A Retrieval Augmented Generation system using the PDF of the Wikipedia Article about the Netherlands.
+Conversator - A conversational agent that can remember previous questions and answers.
 ```
 When running main, it will greet and ask which system you want to explore.
 You can simply return one of the options, and the system will take you there and explain more to you what it can and can't do.
