@@ -3,9 +3,10 @@ from mlx_lm import load, generate
 from rag_systems.nederland_expert import chunks
 
 PDF_PATH = "./datasets/nederland.pdf"
-MODEL_NAME = "mlx-community/Llama-3.2-3B-Instruct"
+MODEL_NAME = "mlx-community/gpt-oss-20b-MXFP4-Q8"
+MARKER = "<|end|><|start|>assistant<|channel|>final<|message|>"
 DEFAULT_TOKENS = 1500
-TOKEN_LIMIT = 300
+TOKEN_LIMIT = 2000
 
 INTRO_PROMPT = "You are a friendly and helpful conversational assistant. Always answer in the same language as the user."
 
@@ -68,7 +69,7 @@ def get_answer(query):
         prompt,
         max_tokens=DEFAULT_TOKENS,
     )
-    answer = result.strip()
+    answer = result.strip().split(MARKER, 1)[1].strip()
     CHAT_HISTORY.append(f"User: {query}")
     CHAT_HISTORY.append(f"Assistant: {answer}\n")
 
@@ -92,4 +93,4 @@ def run_conversator():
             continue
 
         answer = get_answer(query)
-        print("\n✅ Answer:\n", answer)
+        print("\n✅ Answer:\n", answer , '\n')
