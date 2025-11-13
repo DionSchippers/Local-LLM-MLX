@@ -34,7 +34,7 @@ def initialize_model():
     generate(MODEL, TOKENIZER, "Hello", max_tokens=1)
     document = fitz.open(PDF_PATH)
     text = "".join(page.get_text() for page in document)
-    
+
     clean_text = re.sub(r"<\|.*?\|>", "", text)
     clean_text = re.sub(r"\[[0-9]+\]", "", clean_text)  # remove [12] markers
     clean_text = re.sub(r"File:.*?\n", "", clean_text)  # remove image references
