@@ -34,7 +34,13 @@ def initialize_model():
     generate(MODEL, TOKENIZER, "Hello", max_tokens=1)
     document = fitz.open(PDF_PATH)
     text = "".join(page.get_text() for page in document)
+    
     clean_text = re.sub(r"<\|.*?\|>", "", text)
+    clean_text = re.sub(r"\[[0-9]+\]", "", clean_text)  # remove [12] markers
+    clean_text = re.sub(r"File:.*?\n", "", clean_text)  # remove image references
+    clean_text = re.sub(r"https?://\S+", "", clean_text)  # remove URLs
+    clean_text = re.sub(r"\n{2,}", "\n\n", clean_text)  # normalize spacing
+
     CHUNKS = re.split(r"\n\s*\n", clean_text)
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     EMBEDDER = SentenceTransformer(EMBED_MODEL, device=device)
@@ -54,11 +60,7 @@ def initialize_model():
 # =========================
 def convert_chat_history_to_text():
     global CHAT_HISTORY_TEXT
-    for chat in CHAT_HISTORY:
-        if len(CHAT_HISTORY_TEXT) == 0:
-            CHAT_HISTORY_TEXT = chat
-        else:
-            CHAT_HISTORY_TEXT = "\n".join(CHAT_HISTORY)
+    CHAT_HISTORY_TEXT = "\n".join(CHAT_HISTORY)
 
 
 def remove_first_messages():
@@ -88,8 +90,7 @@ def embed_query(text):
 def retrieve_context(query: str, k: int = 3, max_chars: int = 2500):
     query_vectors = embed_query(query)
     distances, indices = INDEX.search(query_vectors, k)
-    selected = [CHUNKS[i][:max_chars] for i in indices[0]]
-    return selected
+    return [CHUNKS[i][:max_chars] for i in indices[0]]
 
 # =========================
 # Step 4: Build the prompt and get answer
