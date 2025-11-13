@@ -1,5 +1,6 @@
 import inquirer
 from memory_systems.conversator import run_conversator
+from memory_systems.roman_expert import run_roman_expert
 from rag_systems.eredivisie_rag import run_eredivisie_rag
 from fine_tuned_systems.fine_tuned_doctor import run_fine_tuned_doctor
 from fine_tune_scripts.fine_tuned_doctor_tuner import run_fine_tuned_doctor_training
@@ -37,7 +38,7 @@ if __name__ == "__main__":
             questions = [
                 inquirer.List('model',
                               message="What model do you want to explore?",
-                              choices=['Fine-tuned-Doctor', 'Eredivisie RAG', 'Nederland Expert RAG', 'Conversator'],
+                              choices=['Fine-tuned-Doctor', 'Eredivisie RAG', 'Nederland Expert RAG', 'Conversator', 'Roman Expert'],
                               ),
             ]
             answers = inquirer.prompt(questions)
@@ -53,6 +54,9 @@ if __name__ == "__main__":
 
             elif answers['model'] == 'Conversator':
                 run_conversator()
+
+            elif answers['model'] == 'Roman Expert':
+                run_roman_expert()
 
             if not inquirer.confirm("Do you want to try another system?", default=True):
                 break

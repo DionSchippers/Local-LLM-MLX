@@ -1,6 +1,5 @@
 from mlx_lm import load, generate
 
-PDF_PATH = "./datasets/nederland.pdf"
 MODEL_NAME = "mlx-community/gpt-oss-20b-MXFP4-Q8"
 MARKER = "<|end|><|start|>assistant<|channel|>final<|message|>"
 DEFAULT_TOKENS = 1500
